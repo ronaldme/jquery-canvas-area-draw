@@ -1,6 +1,14 @@
 jQuery ImageMap Area Canvas Editor
 ======================
 
+Forked from: https://github.com/fahrenheit-marketing/jquery-canvas-area-draw
+
+Changes from forked version:
+- Compatible with jQuery > 3.0
+- Implement option to reload image by adding ? _ newDate().getTime()
+- Removed reset button
+- Changed selected lines to yellow
+
 jQuery plugin to create imagemap area polygon coordinates. 
 Extends a text input to display an image with a canvas
 on which points may be added to create a polygon.
