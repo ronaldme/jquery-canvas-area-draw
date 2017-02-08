@@ -1,52 +1,33 @@
 (function ($) {
-
     $.fn.canvasAreaDraw = function (options) {
-
         this.each(function (index, element) {
             init.apply(element, [index, element, options]);
         });
-
     }
 
     var init = function (index, input, options) {
-
         var points, activePoint, settings;
         var $reset, $canvas, ctx, image;
-        var draw, mousedown, stopdrag, move, moveall, resize, reset, rightclick, record;
-        var dragpoint;
+        var draw, mousedown, stopdrag, move, getCenter, moveall, resize, reset, rightclick, record;
         var startpoint = false;
 
         settings = $.extend({
             imageUrl: $(this).attr('data-image-url')
         }, options);
 
-        var v = $(input).val().replace(/[^0-9\,]/ig, '');
-        if (v.length) {
-            points = v.split(',').map(function (point) {
-                return parseInt(point, 10);
-            });
-        } else {
-            points = [];
-        }
-
-        $reset = $('<button type="button" class="btn"><i class="icon-trash"></i>Очистить</button>');
-        $canvas = $('<canvas>');
+        points = [];
+        $canvas = $('#canvas-area');
         ctx = $canvas[0].getContext('2d');
 
         image = new Image();
-        resize = function () {
-            $canvas.attr('height', image.height).attr('width', image.width);
+        resize = function (width, height) {
+            $canvas.attr('width', width).attr('height', height);
             draw();
         };
-        $(image).load(resize);
-        image.src = settings.imageUrl;
-        if (image.loaded) {
-            resize();
-        }
-        $canvas.css({background: 'url(' + image.src + ')'});
 
-        $(input).after('<br>', $canvas, '<br>', $reset);
-
+        image.src = settings.imageUrl + '?' + new Date().getTime();
+        $canvas.css({ background: 'url(' + image.src + ')  0% 0% / 100%' });
+        
         reset = function () {
             points = [];
             draw();
@@ -172,7 +153,7 @@
             }
             ctx.globalCompositeOperation = 'destination-over';
             ctx.fillStyle = 'rgb(255,255,255)';
-            ctx.strokeStyle = 'rgb(255,20,20)';
+            ctx.strokeStyle = 'rgb(255,255,0)';
             ctx.lineWidth = 1;
             if (points.length >= 6) {
                 var c = getCenter();
@@ -238,6 +219,8 @@
         $(document).find($canvas).on('contextmenu', rightclick);
         $(document).find($canvas).on('mouseup', stopdrag);
 
+        $(input).after('<br>', $canvas, '<br>', $reset);
+        resize(options.width, options.height);
     };
 
     $(document).ready(function () {
@@ -249,19 +232,22 @@
             return Math.sqrt((x -= x0) * x + (y -= y0) * y);
         }
 
-        if (o && !(o = function (x, y, x0, y0, x1, y1) {
-                if (!(x1 - x0)) return {x: x0, y: y};
-                else if (!(y1 - y0)) return {x: x, y: y0};
-                var left, tg = -1 / ((y1 - y0) / (x1 - x0));
+        if (o && !(o = function(x, y, x0, y0, x1, y1) {
+            if (!(x1 - x0)) return { x: x0, y: y };
+            else if (!(y1 - y0)) return { x: x, y: y0 };
+
+            var left, tg = -1 / ((y1 - y0) / (x1 - x0));
                 return {
                     x: left = (x1 * (x * tg - y + y0) + x0 * (x * -tg + y - y1)) / (tg * (x1 - x0) + y0 - y1),
                     y: tg * left - tg * x + y
                 };
-            }(x, y, x0, y0, x1, y1), o.x >= Math.min(x0, x1) && o.x <= Math.max(x0, x1) && o.y >= Math.min(y0, y1) && o.y <= Math.max(y0, y1))) {
+            } (x, y, x0, y0, x1, y1), o.x >= Math.min(x0, x1) &&
+                o.x <= Math.max(x0, x1) &&
+                o.y >= Math.min(y0, y1) &&
+                o.y <= Math.max(y0, y1))) {
             var l1 = lineLength(x, y, x0, y0), l2 = lineLength(x, y, x1, y1);
             return l1 > l2 ? l2 : l1;
-        }
-        else {
+        } else {
             var a = y0 - y1, b = x1 - x0, c = x0 * y1 - y0 * x1;
             return Math.abs(a * x + b * y + c) / Math.sqrt(a * a + b * b);
         }
